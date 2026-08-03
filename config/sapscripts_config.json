@@ -1,0 +1,704 @@
+{
+  "plants": {
+    "01-Anchieta": {
+      "code": "ANC",
+      "name": "Anchieta",
+      "folder_name": "002 - Filiais database/001 - Anchieta",
+      "base_path": "000 - Dashboard Dados"
+    },
+    "02-Taubate": {
+      "code": "TBT",
+      "name": "Taubate",
+      "folder_name": "002 - Filiais database/002 - Taubate",
+      "base_path": "000 - Dashboard Dados"
+    },
+    "03-Curitiba": {
+      "code": "CTB",
+      "name": "Curitiba",
+      "folder_name": "002 - Filiais database/003 - Curitiba",
+      "base_path": "000 - Dashboard Dados"
+    },
+    "04-SaoCarlos": {
+      "code": "SCA",
+      "name": "SaoCarlos",
+      "folder_name": "002 - Filiais database/004 - Sao Carlos",
+      "base_path": "000 - Dashboard Dados"
+    }
+  },
+  "jobs": {
+    "ATEND_LINHA": {
+      "dashboard": "009 - Atendimento de Linha",
+      "transaction": "LT23",
+      "spool_name": "ATEND-LINHA",
+      "use_staging": true,
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "lgnum": "ANC",
+          "variant": "/VINIDASH009",
+          "printer": "locl",
+          "local_extract": "009 - Atendimento de Linha",
+          "name_file": "atendimento_linha_raw.txt"
+        },
+        "02-Taubate": {
+          "lgnum": "TBT",
+          "variant": "/VINIDASH009",
+          "printer": "locl",
+          "local_extract": "009 - Atendimento de linha",
+          "name_file": "atendimento_linha_raw.txt"
+        },
+        "03-Curitiba": {
+          "lgnum": "CTB",
+          "variant": "/VINIDASH009",
+          "printer": "locl",
+          "local_extract": "009 - Atendimento de linha",
+          "name_file": "atendimento_linha_raw.txt"
+        }
+      }
+    },
+    "ATEND_LINHA_PENDENTES": {
+      "dashboard": "009 - Atendimento de Linha",
+      "transaction": "LT23",
+      "spool_name": "ATEND-PEND",
+      "use_staging": true,
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "radio": "OFFTA",
+      "plant_params": {
+        "01-Anchieta": {
+          "lgnum": "ANC",
+          "variant": "/VINIDASH009",
+          "printer": "locl",
+          "local_extract": "009 - Atendimento de Linha",
+          "name_file": "atendimento_linha_pendentes.txt"
+        },
+        "02-Taubate": {
+          "lgnum": "TBT",
+          "variant": "/VINIDASH009",
+          "printer": "locl",
+          "local_extract": "009 - Atendimento de linha",
+          "name_file": "atendimento_linha_pendentes.txt"
+        },
+        "03-Curitiba": {
+          "lgnum": "CTB",
+          "variant": "/VINIDASH009",
+          "printer": "locl",
+          "local_extract": "009 - Atendimento de linha",
+          "name_file": "atendimento_linha_pendentes.txt"
+        }
+      }
+    },
+    "LT23_FIFO1": {
+      "dashboard": "002 - Quebra de Fifo",
+      "transaction": "LT23",
+      "spool_name": "FIFO1",
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "lgnum": "ANC",
+          "variant": "/kpiauto22",
+          "local_extract": "002 - Quebra de Fifo\\LT23",
+          "name_file": "LT23-{date:%d-%m-%Y}.txt"
+        },
+        "02-Taubate": {
+          "lgnum": "TBT",
+          "variant": "/kpiauto2",
+          "local_extract": "002 - Quebra de Fifo\\LT23",
+          "name_file": "LT23-{date:%d-%m-%Y}.txt"
+        },
+        "03-Curitiba": {
+          "lgnum": "CTB",
+          "variant": "/LT23QFCTB",
+          "local_extract": "002 - Quebra de Fifo\\LT23",
+          "name_file": "LT23-{date:%d-%m-%Y}.txt"
+        },
+        "04-SaoCarlos": {
+          "lgnum": "SCA",
+          "variant": "/LT23SCA",
+          "local_extract": "002 - Quebra de Fifo\\LT23",
+          "name_file": "LT23-{date:%d-%m-%Y}.txt"
+        }
+      }
+    },
+    "LX03_FIFO2": {
+      "dashboard": "002 - Quebra de Fifo",
+      "transaction": "LX03",
+      "spool_name": "FIFO2",
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "lgnum": "ANC",
+          "lgtyp": "*",
+          "variant": "/SESESLFIX",
+          "local_extract": "002 - Quebra de Fifo\\LX03",
+          "name_file": "LX03-{date:%d-%m-%Y}.txt"
+        },
+        "02-Taubate": {
+          "lgnum": "TBT",
+          "lgtyp": "*",
+          "variant": "/viniauto",
+          "local_extract": "002 - Quebra de Fifo\\LX03",
+          "name_file": "LX03-{date:%d-%m-%Y}.txt"
+        },
+        "03-Curitiba": {
+          "lgnum": "CTB",
+          "lgtyp": "*",
+          "variant": "/LX03QFCTB",
+          "local_extract": "002 - Quebra de Fifo\\LX03",
+          "name_file": "LX03-{date:%d-%m-%Y}.txt"
+        },
+        "04-SaoCarlos": {
+          "lgnum": "SCA",
+          "lgtyp": "*",
+          "variant": "/viniautosca",
+          "local_extract": "002 - Quebra de Fifo\\LX03",
+          "name_file": "LX03-{date:%d-%m-%Y}.txt"
+        }
+      }
+    },
+    "LX03_BLOQUEADOS": {
+      "dashboard": "020 - Materiais Bloqueados",
+      "transaction": "LX03",
+      "spool_name": "BLOQUEADOS",
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "lgnum": "ANC",
+          "lgtyp": "*",
+          "variant": "/vinidash020",
+          "local_extract": "020 - Materiais Bloqueados",
+          "name_file": "bloqueados_live.txt"
+        },
+        "02-Taubate": {
+          "lgnum": "TBT",
+          "lgtyp": "*",
+          "variant": "/vinidash020",
+          "local_extract": "020 - Materiais Bloqueados",
+          "name_file": "bloqueados_live.txt"
+        },
+        "03-Curitiba": {
+          "lgnum": "CTB",
+          "lgtyp": "*",
+          "variant": "/vinidash020",
+          "local_extract": "020 - Materiais Bloqueados",
+          "name_file": "bloqueados_live.txt"
+        },
+        "04-SaoCarlos": {
+          "lgnum": "SCA",
+          "lgtyp": "*",
+          "variant": "/vinidash020",
+          "local_extract": "020 - Materiais Bloqueados",
+          "name_file": "bloqueados_live.txt"
+        }
+      }
+    },
+    "LX02_IMP": {
+      "dashboard": "004 - Importado",
+      "transaction": "LX02",
+      "spool_name": "IMP",
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "lgnum": "ANC",
+          "variant": "//importado.",
+          "local_extract": "004 - Importado",
+          "name_file": "LX02.txt"
+        }
+      }
+    },
+    "LT22_IMP2": {
+      "dashboard": "004 - Importado",
+      "transaction": "LT22",
+      "spool_name": "IMP2",
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "lgnum": "ANC",
+          "lgtyp": "05S",
+          "variant": "/OTST",
+          "radio": "OFFTA",
+          "local_extract": "004 - Importado\\imp-historico",
+          "name_file": "LT22-PENDENTES.txt"
+        }
+      }
+    },
+    "LT22_IMP3": {
+      "dashboard": "004 - Importado Histórico",
+      "transaction": "LT22",
+      "spool_name": "IMP3",
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "lgnum": "ANC",
+          "lgtyp": "05S",
+          "variant": "/OTST",
+          "radio": "ALLTA",
+          "local_extract": "004 - Importado\\imp-historico",
+          "name_file": "LT22-{date:%b-%Y}.txt"
+        }
+      }
+    },
+    "lt22_ALERTAOP": {
+      "dashboard": "022 - Alertas Operacionais",
+      "transaction": "LT22",
+      "spool_name": "ALERTAOP",
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "03-Curitiba": {
+          "lgnum": "CTB",
+          "lgtyp": "01C",
+          "variant": "/VINIAUTO",
+          "radio": "ALLTA",
+          "local_extract": "022 - Alertas Operacionais",
+          "name_file": "raw_lt22_01c.txt"
+        }
+      }
+    },
+    "MB51_EMPURRADA": {
+      "dashboard": "003 - Baixa Empurrada",
+      "transaction": "MB51",
+      "spool_name": "EMPURRADA",
+      "use_staging": true,
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "werks": "5100",
+          "lgort": "lb01",
+          "bwart": "311",
+          "variant": "/viniemp2",
+          "printer": "locl",
+          "local_extract": "003 - Baixa Empurrada\\historico",
+          "name_file": "mes{date:%m-%d-%Y}.txt"
+        },
+        "02-Taubate": {
+          "werks": "5300",
+          "lgort": "lb01",
+          "bwart": "311",
+          "variant": "/viniemptbt2",
+          "printer": "locl",
+          "local_extract": "003 - Baixa Empurrada\\historico",
+          "name_file": "MB51-{date:%d-%m-%Y}.txt"
+        },
+        "03-Curitiba": {
+          "werks": "5700",
+          "lgort": "lb01",
+          "bwart": "311",
+          "variant": "/viniempctb2",
+          "printer": "locl",
+          "local_extract": "003 - Baixa Empurrada\\historico",
+          "name_file": "mes{date:%m-%d-%Y}.txt"
+        },
+        "04-SaoCarlos": {
+          "werks": "5200",
+          "lgort": "LP13",
+          "bwart": "311",
+          "variant": "/viniempsca",
+          "printer": "locl",
+          "local_extract": "003 - Baixa Empurrada\\historico",
+          "name_file": "MB51-{date:%d-%m-%Y}.txt"
+        }
+      }
+    },
+    "VL06I_FORNEC": {
+      "dashboard": "001 - Fornecimentos Pendentes",
+      "transaction": "VL06I",
+      "spool_name": "FORNEC",
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "vstel": "p100",
+          "date_low": "01.01.2024",
+          "local_extract": "001 - Fornecimentos Pendentes",
+          "name_file": "vl06ivw.txt"
+        },
+        "02-Taubate": {
+          "vstel": "p300",
+          "date_low": "01.01.2024",
+          "local_extract": "001 - Fornecimentos pendentes",
+          "name_file": "vl06i.txt"
+        },
+        "03-Curitiba": {
+          "vstel": "p700",
+          "date_low": "01.01.2024",
+          "local_extract": "001 - Fornecimentos pendentes",
+          "name_file": "vl06icuritiba.txt"
+        },
+        "04-SaoCarlos": {
+          "vstel": [
+            "p200",
+            "a200"
+          ],
+          "date_low": "01.01.2024",
+          "local_extract": "001 - Fornecimentos pendentes",
+          "name_file": "vl06i.txt"
+        }
+      }
+    },
+    "VL06I_FORNEC2": {
+      "dashboard": "001 - Fornecimentos Pendentes",
+      "transaction": "VL06I",
+      "spool_name": "FORNEC2",
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "03-Curitiba": {
+          "lgnum": "ctb",
+          "date_low": "01.01.2024",
+          "local_extract": "001 - Fornecimentos pendentes",
+          "name_file": "vl06icuritibapt2.txt"
+        }
+      }
+    },
+    "LT22_ZONA": {
+      "dashboard": "006 - Controle de Zona",
+      "transaction": "LT22",
+      "spool_name": "ZONALT22",
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "lgnum": "ANC",
+          "lgtyp": "ZZ1",
+          "radio": "OFFTA",
+          "local_extract": "006 - Controle de Zona",
+          "name_file": "lt22zz1_pendentes.txt"
+        },
+        "02-Taubate": {
+          "lgnum": "TBT",
+          "lgtyp": "Z*",
+          "radio": "OFFTA",
+          "variant": "/ZONALT22PDT",
+          "local_extract": "006 - Controle de ZZ1",
+          "name_file": "lt22zz1_pendentes.txt"
+        },
+        "03-Curitiba": {
+          "lgnum": "CTB",
+          "lgtyp": "Z1B",
+          "radio": "OFFTA",
+          "variant": "/TST-DASH",
+          "spool_name": "ZONALT22PDT",
+          "local_extract": "006 - Controle de Zona",
+          "name_file": "lt22zz1_pendentes.txt"
+        }
+      }
+    },
+    "LT22_ZONA_GERAL": {
+      "dashboard": "006 - Controle de Zona",
+      "transaction": "LT22",
+      "spool_name": "ZONALT22",
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "02-Taubate": {
+          "lgnum": "TBT",
+          "lgtyp": "Z*",
+          "radio": "ALLTA",
+          "variant": "/ZONALT22",
+          "local_extract": "006 - Controle de ZZ1",
+          "name_file": "LT22ZZ1.txt"
+        }
+      }
+    },
+    "LX03_ZONA": {
+      "dashboard": "006 - Controle de Zona",
+      "transaction": "LX03",
+      "spool_name": "LX03ZONA",
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "lgnum": "ANC",
+          "lgtyp": "ZZ1",
+          "variant": "/ZONECONTROL",
+          "local_extract": "006 - Controle de Zona",
+          "name_file": "LX03ZZ1.txt"
+        },
+        "02-Taubate": {
+          "lgnum": "TBT",
+          "lgtyp": "z*",
+          "variant": "/ZONECTRLTBT",
+          "local_extract": "006 - Controle de ZZ1",
+          "name_file": "LX03ZZ1.txt"
+        },
+        "03-Curitiba": {
+          "lgnum": "CTB",
+          "lgtyp": "Z1B",
+          "variant": "/ctrlzonactb",
+          "local_extract": "006 - Controle de Zona",
+          "name_file": "LX03ZZ1.txt"
+        }
+      }
+    },
+    "LX02_GERAL": {
+      "dashboard": "000 - Compartilhado",
+      "transaction": "LX02",
+      "spool_name": "BESI3LX02",
+      "use_staging": true,
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "lgnum": "ANC",
+          "variant": "/TSTbesi",
+          "local_extract": "000 - Compartilhado",
+          "name_file": "LX02.txt"
+        },
+        "02-Taubate": {
+          "lgnum": "TBT",
+          "variant": "/LX02BD",
+          "local_extract": "000 - Compartilhado",
+          "name_file": "LX02.txt"
+        },
+        "03-Curitiba": {
+          "lgnum": "CTB",
+          "variant": "/BDCTB",
+          "local_extract": "000 - Compartilhado",
+          "name_file": "LX02.txt"
+        }
+      }
+    },
+    "MB51_BESI3": {
+      "dashboard": "005 - Baixa Divergente",
+      "transaction": "MB51",
+      "spool_name": "BESI3MB51",
+      "use_staging": true,
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "werks": "5100",
+          "variant": "VINIDIVER",
+          "local_extract": "005 - Baixa Divergente\\historico",
+          "name_file": "MB51-{date:%d%m%Y}.txt"
+        },
+        "02-Taubate": {
+          "werks": "5300",
+          "variant": "VINIDIVER",
+          "local_extract": "005 - Baixa Divergente\\historico",
+          "name_file": "MB51-{date:%d-%m-%Y}.txt"
+        },
+        "03-Curitiba": {
+          "werks": "5700",
+          "variant": "VINIDIVER",
+          "local_extract": "005 - Baixa Divergente\\historico",
+          "name_file": "MB51-{date:%d%m%Y}.txt"
+        }
+      }
+    },
+    "LT23_COFRE1": {
+      "dashboard": "016 - Cofre Importado",
+      "transaction": "LT23",
+      "spool_name": "COFRE1",
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "lgnum": "ANC",
+          "variant": "/newcofredash",
+          "local_extract": "016 - Cofre Importado\\SAP",
+          "name_file": "LT23COFRE-{date:%d-%m-%Y}.txt"
+        }
+      }
+    },
+    "MAISEWM021R_EMBALAGEM": {
+      "dashboard": "010 - Controle de Embalagens",
+      "transaction": "/VWK/MAISEWM021",
+      "spool_name": "EMBALAGEMKPI",
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "werks": "*",
+          "local_extract": "010 - Controle de Embalagens\\HISTORICO",
+          "name_file": "EMBALAGEM-{date:%m-%Y}.txt"
+        },
+        "02-Taubate": {
+          "werks": "5300",
+          "local_extract": "010 - Controle de Embalagens\\HISTORICO",
+          "name_file": "EMBALAGEM-{date:%m-%Y}.txt"
+        },
+        "03-Curitiba": {
+          "werks": "5700",
+          "local_extract": "010 - Controle de Embalagens\\HISTORICO",
+          "name_file": "EMBALAGEM-{date:%m-%Y}.txt"
+        },
+        "04-SaoCarlos": {
+          "werks": "5200",
+          "local_extract": "010 - Controle de Embalagens\\HISTORICO",
+          "name_file": "EMBALAGEM-{date:%m-%Y}.txt"
+        }
+      }
+    },
+    "MB52_AUTO": {
+      "dashboard": "000 - Compartilhado",
+      "transaction": "MB52",
+      "spool_name": "MB52AUTO",
+      "use_staging": true,
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "variant": "/VINIAUTO52",
+          "local_extract": "000 - Compartilhado",
+          "name_file": "MB52.txt",
+          "name_file_madrugada": "MB52_madrugada.txt"
+        }
+      }
+    },
+    "AL11_BESI3": {
+      "dashboard": "005 - Baixa Divergente",
+      "transaction": "AL11",
+      "spool_name": "BESI3",
+      "use_staging": true,
+      "active": true,
+      "background_job": false,
+      "once_per_day": true,
+      "plant_params": {
+        "01-Anchieta": {
+          "local_extract": "005 - Baixa Divergente",
+          "name_file": "BESI3.txt"
+        }
+      }
+    },
+    "PKMC_GERAL": {
+      "dashboard": "000 - Compartilhado",
+      "transaction": "PKMC",
+      "spool_name": "PKMC",
+      "active": true,
+      "background_job": false,
+      "once_per_day": true,
+      "timeout": 900,
+      "plant_params": {
+        "01-Anchieta": {
+          "werks": "5100",
+          "variant": "/VINIAUTO",
+          "local_extract": "000 - Compartilhado",
+          "name_file": "PKMC.XLSX"
+        },
+        "02-Taubate": {
+          "werks": "5300",
+          "variant": "/VINIAUTO",
+          "local_extract": "000 - Compartilhado",
+          "name_file": "PKMC.XLSX"
+        },
+        "03-Curitiba": {
+          "werks": "5700",
+          "variant": "/VINIAUTO",
+          "local_extract": "000 - Compartilhado",
+          "name_file": "PKMC.XLSX"
+        },
+        "04-SaoCarlos": {
+          "werks": "5200",
+          "variant": "/VINIAUTO",
+          "local_extract": "000 - Compartilhado",
+          "name_file": "PKMC.XLSX"
+        }
+      }
+    },
+    "MD04_GLOBAL": {
+      "dashboard": "000 - Global",
+      "transaction": "MD04",
+      "spool_name": "MD04",
+      "active": true,
+      "background_job": false,
+      "once_per_day": true,
+      "timeout": 1500,
+      "scope": "global",
+      "plant_params": {
+        "01-Anchieta": {
+          "werks": "5100",
+          "class": "MATERIAL",
+          "klart": "001",
+          "local_extract": "..\\..\\000 - Global",
+          "name_file": "MD04_full.XLSX"
+        }
+      }
+    },
+    "USERS_SYNC": {
+      "dashboard": "000 - Global",
+      "transaction": "SSC0",
+      "spool_name": "SYNCUSRS",
+      "active": true,
+      "background_job": false,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "local_extract": "..\\..\\000 - Global",
+          "name_file": "scan user.xlsm"
+        },
+        "02-Taubate": {
+          "local_extract": "..\\..\\000 - Global",
+          "name_file": "scan user.xlsm"
+        },
+        "03-Curitiba": {
+          "local_extract": "..\\..\\000 - Global",
+          "name_file": "scan user.xlsm"
+        },
+        "04-SaoCarlos": {
+          "local_extract": "..\\..\\000 - Global",
+          "name_file": "scan user.xlsm"
+        }
+      }
+    },
+    "PK05_GERAL": {
+      "dashboard": "000 - Compartilhado",
+      "transaction": "PK05",
+      "spool_name": "PK05",
+      "active": true,
+      "background_job": false,
+      "once_per_day": true,
+      "plant_params": {
+        "01-Anchieta": {
+          "werks": "5100",
+          "local_extract": "000 - Compartilhado",
+          "name_file": "PK05.txt"
+        },
+        "02-Taubate": {
+          "werks": "5300",
+          "local_extract": "000 - Compartilhado",
+          "name_file": "PK05.txt"
+        },
+        "03-Curitiba": {
+          "werks": "5700",
+          "local_extract": "000 - Compartilhado",
+          "name_file": "PK05.txt"
+        },
+        "04-SaoCarlos": {
+          "werks": "5200",
+          "local_extract": "000 - Compartilhado",
+          "name_file": "PK05.txt"
+        }
+      }
+    }
+  }
+}

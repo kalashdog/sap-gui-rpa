@@ -1,0 +1,9 @@
+pywin32
+python-dotenv
+requests
+psutil
+customtkinter
+keyring
+pillow
+pyinstaller
+pytest
