@@ -79,6 +79,25 @@ def main():
             f.write(f"FIREBASE_RTDB_SECRET = base64.b64decode(b'{b64_secret}').decode()\n")
             f.write(f"FIREBASE_URL = base64.b64decode(b'{b64_url}').decode()\n")
         print("    ✅ Secure Bootstrap module generated (Obfuscated).")
+        
+        print("    [4.5] Sincronizando rpa_jobs.json com a Nuvem...")
+        rpa_jobs_path = os.path.join("config", "rpa_jobs.json")
+        if os.path.exists(rpa_jobs_path):
+            try:
+                import requests
+                with open(rpa_jobs_path, "r", encoding="utf-8") as json_file:
+                    jobs_data = json.load(json_file)
+                fb_url = f"{url}/rpa_jobs.json?auth={secret}"
+                resp = requests.put(fb_url, json=jobs_data, timeout=10)
+                if resp.status_code == 200:
+                    print("    ✅ Configurações rpa_jobs atualizadas na Nuvem com sucesso!")
+                else:
+                    print(f"    ⚠️ Erro ao subir rpa_jobs para a nuvem: HTTP {resp.status_code} - {resp.text}")
+            except Exception as e:
+                print(f"    ⚠️ Erro ao conectar com o Firebase: {e}")
+        else:
+            print("    ⚠️ Arquivo config/rpa_jobs.json não encontrado. Ignorando upload.")
+            
     else:
         print("    ⚠️ WARNING: FIREBASE_RTDB_SECRET or FIREBASE_URL not found in .env!")
 
@@ -89,7 +108,6 @@ def main():
         "--icon=.assets\\rpaseselogo_perfect.ico",
         f"--name={exe_name_no_ext}",
         "--add-data=.assets;.assets",
-        "--add-data=config;config",
         "--hidden-import=win32com.client",
         "--hidden-import=pythoncom",
         "--hidden-import=keyring.backends.Windows",

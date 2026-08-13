@@ -137,15 +137,31 @@ def _get_params(job_key: str, plant_id: str) -> Tuple[Dict[str, Any], str]:
     spool = plant_params.get("spool_name") or cfg["spool_name"]
     return plant_params, spool
 
-# LT23
-def request_atend_linha(session, plant_id: str, job_key: str):
-    """LT23 via variante externa - a variante ja contém lgnum, datas e radio. // *** Planejar mudar todos os requests para esse formato para ficar mais bunitin ***"""
+# LT23 (CORINGA GENÉRICO - via variante externa)
+def request_lt23(session, plant_id: str, job_key: str):
+    """LT23 via variante externa - a variante ja contém lgnum, datas e radio."""
     params, spool = _get_params(job_key, plant_id)
 
     session.findById("wnd[0]/tbar[1]/btn[17]").press()
     session.findById("wnd[1]/usr/txtV-LOW").Text = params["variant"]
     session.findById("wnd[1]/tbar[0]/btn[8]").press()
-    session.findById("wnd[0]/usr/ctxtT1_LGNUM").Text = params["lgnum"]
+    
+    if "lgnum" in params:
+        session.findById("wnd[0]/usr/ctxtT1_LGNUM").Text = params["lgnum"]
+
+    send_to_background(session, spool, params.get("printer", "locl"))
+
+# LT22 (CORINGA GENÉRICO - via variante externa)
+def request_lt22(session, plant_id: str, job_key: str):
+    """LT22 via variante externa - a variante ja contém lgnum, datas e radio."""
+    params, spool = _get_params(job_key, plant_id)
+
+    session.findById("wnd[0]/tbar[1]/btn[17]").press()
+    session.findById("wnd[1]/usr/txtV-LOW").Text = params["variant"]
+    session.findById("wnd[1]/tbar[0]/btn[8]").press()
+    
+    if "lgnum" in params:
+        session.findById("wnd[0]/usr/ctxtT3_LGNUM").Text = params["lgnum"]
 
     send_to_background(session, spool, params.get("printer", "locl"))
 
@@ -233,15 +249,16 @@ def request_mb51_empurrada(session, plant_id: str, job_key: str):
     send_to_background(session, spool, params.get("printer", "locl"))
 
 
-#  MB51_BESI3 
-def request_mb51_besi3(session, plant_id: str, job_key: str):
+# MB51 (CORINGA GENÉRICO - com variante externa)
+def request_mb51(session, plant_id: str, job_key: str):
     params, spool = _get_params(job_key, plant_id)
 
     session.findById("wnd[0]/tbar[1]/btn[17]").press()
     session.findById("wnd[1]/usr/txtV-LOW").Text = params["variant"]
     session.findById("wnd[1]").sendVKey(0)
 
-    session.findById("wnd[0]/usr/ctxtWERKS-LOW").Text = params["werks"]
+    if "werks" in params:
+        session.findById("wnd[0]/usr/ctxtWERKS-LOW").Text = params["werks"]
 
     send_to_background(session, spool)
 
@@ -629,7 +646,7 @@ def request_pk05(session, plant_id: str, job_key: str):
         session.findById("wnd[1]/usr/sub:SAPLSVIX:0100/ctxtD0100_FIELD_TAB-LOWER_LIMIT[0,37]").Text = params["werks"]
     except Exception:
         try:
-            session.findById("wnd[2]").sendVKey(0)
+            session.findById("wnd[1]/tbar[0]/btn[0]").press
         except Exception:
             session.findById("wnd[1]").sendVKey(0)
         time.sleep(0.5)
@@ -649,3 +666,18 @@ def request_pk05(session, plant_id: str, job_key: str):
 
     session.findById("wnd[0]").sendVKey(3)
     session.findById("wnd[0]").sendVKey(3)
+
+# /VWK/MAIREIM015
+def request_maireim015_superbesi(session, plant_id: str, job_key: str):
+    params, spool = _get_params(job_key, plant_id)
+
+    session.findById("wnd[0]/usr/ctxtS_WERKS-LOW").Text = params.get("werks", "5100")
+    session.findById("wnd[0]/usr/txtS_COBERT-LOW").Text = "-99999999" 
+    session.findById("wnd[0]/usr/txtS_COBERT-HIGH").Text = "999999999"
+    session.findById("wnd[0]/usr/ctxtS_MATNR-LOW").Text = "*"
+    session.findById("wnd[0]/usr/ctxtS_DISPO-LOW").Text = ""
+    session.findById("wnd[0]/usr/ctxtS_LIFNR-LOW").Text = ""
+    session.findById("wnd[0]/usr/ctxtP_VARIAN").Text = params.get("variant", "/NEWBESI")
+    session.findById("wnd[0]").sendVKey(0)
+
+    send_to_background(session, spool, params.get("printer", "locl"))

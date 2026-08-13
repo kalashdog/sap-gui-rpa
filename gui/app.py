@@ -25,18 +25,18 @@ from config.settings import settings
 from core.utils import get_onedrive_path
 
 from gui.constants import (
-    APP_TITLE, APP_VERSION, EXPECTED_FOLDER, SHAREPOINT_LINK,
-    FONT, FONT_MONO, SIDEBAR_W, MAIN_W, WIN_W, WIN_H,
+    APP_VERSION, EXPECTED_FOLDER, SHAREPOINT_LINK,
+    FONT, SIDEBAR_W,
     ES_CONTINUOUS, ES_SYSTEM_REQUIRED, ES_DISPLAY_REQUIRED,
-    ACCENT, ACCENT_HOVER, ACCENT_SOFT, ACCENT_TEXT,
-    BG_APP, PANEL, PANEL_ALT, BORDER, TEXT, TEXT_MUTED,
+    ACCENT, ACCENT_SOFT, ACCENT_TEXT,
+    PANEL, PANEL_ALT, BORDER, TEXT, TEXT_MUTED,
     SIDEBAR_BG, SIDEBAR_MUTED, SIDEBAR_CARD_BG, SIDEBAR_CARD_BORDER,
-    SIDEBAR_BTN_HOVER, SECONDARY, SECONDARY_HOVER,
+    SIDEBAR_BTN_HOVER,
     SUCCESS_FG, SUCCESS_TEXT, WARNING_FG, WARNING_TEXT,
-    DANGER, DANGER_HOVER, ERROR_FG, ERROR_TEXT,
+    ERROR_FG, ERROR_TEXT,
     get_asset_path,
 )
-from gui.helpers import load_prefs, save_prefs, theme_to_mode, short_path, safe_del_pwd
+from gui.helpers import load_prefs, save_prefs, theme_to_mode, short_path, safe_del_pwd, setup_window, build_shell
 
 from gui.pages import setup as setup_page
 from gui.pages import login as login_page
@@ -50,26 +50,7 @@ class RpaGUI(ctk.CTk):
         ctk.set_appearance_mode(theme_to_mode(self._prefs.get("theme", "Escuro")))
 
         super().__init__()
-
-        self.title(APP_TITLE)
-        self.geometry(f"{WIN_W}x{WIN_H}")
-
-        try:
-            myappid = 'sese.rpa.logistica.v2'
-            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-        except Exception:
-            pass
-
-        try:
-            icon_path = get_asset_path(".assets/rpaseselogo_perfect.ico")
-            if os.path.exists(icon_path):
-                self.iconbitmap(icon_path)
-        except Exception as e:
-            print(f"Erro ao carregar ícone: {e}")
-
-        self.resizable(False, False)
-        self.configure(fg_color=BG_APP)
-        self._center(WIN_W, WIN_H)
+        setup_window(self)
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
         # State
@@ -91,10 +72,10 @@ class RpaGUI(ctk.CTk):
         self.autostart_var = tk.BooleanVar(value=self._prefs.get("autostart", False))
 
         self._reset_refs()
-        self._build_shell()
+        build_shell(self)
         self._check_env(navigate=True)
 
-        self._prevent_sleep()
+        self._set_sleep(True)
 
         if "--autostart" in sys.argv:
             print("Autostart detetado. Aguardando 30s para estabilização da rede...")
@@ -119,10 +100,7 @@ class RpaGUI(ctk.CTk):
     def _running(self) -> bool:
         return self.worker_thread is not None and self.worker_thread.is_alive()
 
-    def _center(self, w: int, h: int) -> None:
-        x = (self.winfo_screenwidth() - w) // 2
-        y = (self.winfo_screenheight() - h) // 2
-        self.geometry(f"{w}x{h}+{x}+{y}")
+
 
     def _on_close(self):
         if self._running():
@@ -132,233 +110,34 @@ class RpaGUI(ctk.CTk):
                 return
             self.stop_event.set()
         self.timer_running = False
-        self._allow_sleep()
+        self._set_sleep(False)
         self.destroy()
 
-    def _prevent_sleep(self):
-        """Injects the 'Active Display' command into the Windows Kernel."""
+    def _set_sleep(self, block: bool):
         try:
             if sys.platform == "win32":
-                ctypes.windll.kernel32.SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED)
-        except Exception as e:
-            print(f"Erro ao bloquear suspensão: {e}")
-
-    def _allow_sleep(self):
-        """Returns power control to Windows."""
-        try:
-            if sys.platform == "win32":
-                ctypes.windll.kernel32.SetThreadExecutionState(ES_CONTINUOUS)
-        except Exception:
-            pass
+                ctypes.windll.kernel32.SetThreadExecutionState(ES_CONTINUOUS | (ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED if block else 0))
+        except Exception: pass
 
     def toggle_autostart(self):
         import win32com.client
-        startup_folder = os.path.join(os.environ["APPDATA"], r"Microsoft\Windows\Start Menu\Programs\Startup")
-        shortcut_path = os.path.join(startup_folder, "HubSeseRPA.lnk")
-
-        if self.caminho_onedrive:
-            target_path = os.path.join(self.caminho_onedrive, "002 - Filiais database", "007 - RPA SAP", "RPA_Sese.exe")
-        else:
-            target_path = sys.executable if getattr(sys, 'frozen', False) else os.path.abspath(__file__)
-
+        shortcut = os.path.join(os.environ["APPDATA"], r"Microsoft\Windows\Start Menu\Programs\Startup\HubSeseRPA.lnk")
         if self.autostart_var.get():
             try:
-                # fallback pra versao velha ja baixada se der pau no onedrive
-                if not os.path.exists(target_path):
-                    target_path = sys.executable if getattr(sys, 'frozen', False) else os.path.abspath(__file__)
-                    
-                shell = win32com.client.Dispatch("WScript.Shell")
-                shortcut = shell.CreateShortCut(shortcut_path)
-                shortcut.Targetpath = target_path
-                shortcut.Arguments = "--autostart"
-                shortcut.WorkingDirectory = os.path.dirname(target_path)
-                shortcut.IconLocation = target_path
-                shortcut.save()
-            except Exception as e:
-                print(f"Erro ao criar atalho: {e}")
-        else:
-            if os.path.exists(shortcut_path):
-                os.remove(shortcut_path)
-
+                exe = os.path.join(self.caminho_onedrive or "", "002 - Filiais database", "007 - RPA SAP", "RPA_Sese.exe")
+                exe = exe if os.path.exists(exe) else (sys.executable if getattr(sys, 'frozen', False) else os.path.abspath(__file__))
+                s = win32com.client.Dispatch("WScript.Shell").CreateShortCut(shortcut)
+                s.Targetpath, s.Arguments, s.WorkingDirectory, s.IconLocation = exe, "--autostart", os.path.dirname(exe), exe
+                s.save()
+            except Exception: pass
+        elif os.path.exists(shortcut):
+            os.remove(shortcut)
         self._prefs["autostart"] = self.autostart_var.get()
         save_prefs(self._prefs)
 
     def trigger_auto_start(self):
         if keyring.get_password("RPA_SESE_USER", "default"):
             self._start()
-
-    
-    #  SHELL
-    def _build_shell(self):
-        self.grid_columnconfigure(0, weight=0, minsize=SIDEBAR_W)
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_rowconfigure(0, weight=1)
-
-        #  SIDEBAR 
-        self.sidebar = ctk.CTkFrame(
-            self, width=SIDEBAR_W, corner_radius=0, fg_color=SIDEBAR_BG
-        )
-        self.sidebar.grid(row=0, column=0, sticky="nsew")
-        self.sidebar.grid_propagate(False)
-        self._build_sidebar()
-
-        #  MAIN PANEL   
-        self.main_panel = ctk.CTkFrame(self, fg_color="transparent")
-        self.main_panel.grid(row=0, column=1, sticky="nsew", padx=(12, 18), pady=18)
-        self.main_panel.grid_rowconfigure(0, weight=1)
-        self.main_panel.grid_columnconfigure(0, weight=1)
-
-        self.main_card = ctk.CTkFrame(
-            self.main_panel, corner_radius=20,
-            fg_color=PANEL, border_width=1, border_color=BORDER
-        )
-        self.main_card.grid(row=0, column=0, sticky="nsew")
-        self.main_card.grid_rowconfigure(2, weight=1)
-        self.main_card.grid_columnconfigure(0, weight=1)
-
-        # Header
-        hdr = ctk.CTkFrame(self.main_card, fg_color="transparent")
-        hdr.grid(row=0, column=0, sticky="ew", padx=24, pady=(20, 10))
-
-        self.page_tag = ctk.CTkLabel(
-            hdr, text="", font=(FONT, 10, "bold"), text_color=ACCENT
-        )
-        self.page_tag.pack(anchor="w")
-
-        self.page_title = ctk.CTkLabel(
-            hdr, text="", font=(FONT, 22, "bold"), text_color=TEXT
-        )
-        self.page_title.pack(anchor="w", pady=(2, 0))
-
-        self.page_sub = ctk.CTkLabel(
-            hdr, text="", font=(FONT, 11), text_color=TEXT_MUTED,
-            wraplength=MAIN_W - 60, justify="left"
-        )
-        self.page_sub.pack(anchor="w", pady=(4, 0))
-
-        ctk.CTkFrame(
-            self.main_card, height=1, fg_color=BORDER
-        ).grid(row=1, column=0, sticky="ew", padx=24)
-
-        self.content = ctk.CTkFrame(self.main_card, fg_color="transparent")
-        self.content.grid(row=2, column=0, sticky="nsew", padx=24, pady=(12, 20))
-
-    #  Sidebar  
-    def _build_sidebar(self):
-        sb = self.sidebar
-        wrap = SIDEBAR_W - 48
-
-        #  Brand  
-        brand = ctk.CTkFrame(sb, fg_color="transparent")
-        brand.pack(fill="x", padx=24, pady=(24, 16))
-
-        try:
-            logo_path = get_asset_path(".assets/sese_white.png")
-            logo_img = ctk.CTkImage(
-                light_image=Image.open(logo_path),
-                dark_image=Image.open(logo_path),
-                size=(160, 48)
-            )
-            logo_label = ctk.CTkLabel(brand, image=logo_img, text="")
-            logo_label.pack(anchor="w")
-        except Exception:
-            badge = ctk.CTkLabel(
-                brand, text="RPA SESÉ", width=48, height=48,
-                corner_radius=14, fg_color=ACCENT,
-                text_color="white", font=(FONT, 18, "bold")
-            )
-            badge.pack(anchor="w")
-
-        ctk.CTkLabel(
-            brand, text="Hub de Dashboards",
-            font=(FONT, 22, "bold"), text_color="white"
-        ).pack(anchor="w", pady=(12, 0))
-
-        ctk.CTkLabel(
-            brand, text="RPA SESÉ • SAP",
-            font=(FONT, 12), text_color=SIDEBAR_MUTED
-        ).pack(anchor="w", pady=(2, 0))
-
-        ctk.CTkLabel(
-            brand,
-            text=(
-                "Painel centralizado para autenticação, "
-                "execução e acompanhamento do robô de "
-                "automação SAP com exportação em nuvem."
-            ),
-            wraplength=wrap, justify="left",
-            font=(FONT, 12), text_color="#CBD5E1"
-        ).pack(anchor="w", pady=(14, 0))
-
-        #  Environment card 
-        env = ctk.CTkFrame(
-            sb, corner_radius=16,
-            fg_color=SIDEBAR_CARD_BG,
-            border_width=1, border_color=SIDEBAR_CARD_BORDER
-        )
-        env.pack(fill="x", padx=24, pady=(8, 12))
-
-        ctk.CTkLabel(
-            env, text="AMBIENTE",
-            font=(FONT, 10, "bold"), text_color=SIDEBAR_MUTED
-        ).pack(anchor="w", padx=14, pady=(14, 8))
-
-        self.env_badge = ctk.CTkLabel(
-            env, text="Verificando…",
-            width=140, height=26, corner_radius=999,
-            fg_color=("#1E293B", "#1E293B"),
-            text_color="#E2E8F0", font=(FONT, 11, "bold")
-        )
-        self.env_badge.pack(anchor="w", padx=14)
-
-        self.env_path = ctk.CTkLabel(
-            env, text="Verificando OneDrive…",
-            wraplength=wrap - 28, justify="left",
-            font=(FONT, 11), text_color="#CBD5E1"
-        )
-        self.env_path.pack(anchor="w", padx=14, pady=(10, 14))
-
-        #  Quick actions 
-        ctk.CTkLabel(
-            sb, text="AÇÕES RÁPIDAS",
-            font=(FONT, 10, "bold"), text_color=SIDEBAR_MUTED
-        ).pack(anchor="w", padx=24, pady=(4, 8))
-
-        ctk.CTkButton(
-            sb, text="🌐  Abrir SharePoint",
-            height=36, corner_radius=12,
-            fg_color=ACCENT, hover_color=ACCENT_HOVER,
-            font=(FONT, 12, "bold"),
-            command=lambda: webbrowser.open_new_tab(SHAREPOINT_LINK)
-        ).pack(fill="x", padx=24, pady=4)
-
-        ctk.CTkButton(
-            sb, text="🔄  Revalidar ambiente",
-            height=36, corner_radius=12,
-            fg_color="transparent", hover_color=SIDEBAR_BTN_HOVER,
-            border_width=1, border_color="#334155",
-            font=(FONT, 12, "bold"),
-            command=lambda: self._check_env(navigate=not self._running())
-        ).pack(fill="x", padx=24, pady=4)
-
-        #  Theme 
-        ctk.CTkLabel(
-            sb, text="TEMA",
-            font=(FONT, 10, "bold"), text_color=SIDEBAR_MUTED
-        ).pack(anchor="w", padx=24, pady=(16, 8))
-
-        seg = ctk.CTkSegmentedButton(
-            sb, values=["Sistema", "Claro", "Escuro"],
-            command=self._set_theme, corner_radius=12
-        )
-        seg.pack(fill="x", padx=24)
-        seg.set(self._prefs.get("theme", "Escuro"))
-
-        #  Footer 
-        ctk.CTkLabel(
-            sb, text=f"v{APP_VERSION}  •  VINICIUS LIMA",
-            font=(FONT, 10), text_color="#475569"
-        ).pack(side="bottom", anchor="w", padx=24, pady=(8, 18))
 
     def _set_theme(self, sel):
         ctk.set_appearance_mode(theme_to_mode(sel))
@@ -369,39 +148,68 @@ class RpaGUI(ctk.CTk):
     #  ENVIRONMENT
     def _check_env(self, navigate: bool = True):
         self.onedrive_base = get_onedrive_path()
-        self.caminho_onedrive = None
-        self.env_ready = False
-
-        if self.onedrive_base:
-            p = os.path.join(self.onedrive_base, EXPECTED_FOLDER)
-            if os.path.exists(p):
-                self.caminho_onedrive = p
-                self.env_ready = True
-
+        self.caminho_onedrive = os.path.join(self.onedrive_base, EXPECTED_FOLDER) if self.onedrive_base else None
+        self.env_ready = bool(self.caminho_onedrive and os.path.exists(self.caminho_onedrive))
         self._update_env()
-        if navigate:
-            (self._show_login if self.env_ready else self._show_setup)()
+        if navigate: (self._show_login if self.env_ready else self._show_setup)()
 
     def _update_env(self):
         if self.env_ready:
-            self.env_badge.configure(
-                text="✓  Pronto", fg_color=ACCENT_SOFT, text_color=ACCENT_TEXT
-            )
-            self.env_path.configure(
-                text=f"Pasta validada:\n{short_path(self.caminho_onedrive, 48)}"
-            )
-        elif self.onedrive_base:
-            self.env_badge.configure(
-                text="⚠  Pendente", fg_color=WARNING_FG, text_color=WARNING_TEXT
-            )
-            self.env_path.configure(
-                text=f"OneDrive encontrado, mas '{EXPECTED_FOLDER}' não existe."
-            )
+            self.env_badge.configure(text="  ✓ Pronto  ", fg_color=ACCENT_SOFT, text_color=ACCENT_TEXT)
+            self.env_path.pack_forget()
+            self.jobs_container.pack(side="top", fill="both", expand=True, padx=12, pady=(0, 8))
         else:
-            self.env_badge.configure(
-                text="✕  Sem OneDrive", fg_color=ERROR_FG, text_color=ERROR_TEXT
-            )
-            self.env_path.configure(text="Nenhum OneDrive encontrado.")
+            self.jobs_container.pack_forget()
+            self.env_path.pack(anchor="w", padx=14, pady=(0, 14))
+            if self.onedrive_base:
+                self.env_badge.configure(text="  ⚠ Pendente  ", fg_color=WARNING_FG, text_color=WARNING_TEXT)
+                self.env_path.configure(text=f"OneDrive encontrado, mas '{EXPECTED_FOLDER}' não existe.")
+            else:
+                self.env_badge.configure(text="  ✕ Sem OneDrive  ", fg_color=ERROR_FG, text_color=ERROR_TEXT)
+                self.env_path.configure(text="Nenhum OneDrive encontrado.")
+
+    def on_plant_select(self, plant_id: str):
+        self._prefs["last_plant"] = plant_id
+        save_prefs(self._prefs)
+        for w in self.jobs_container.winfo_children(): w.destroy()
+            
+        from config.settings import settings
+        jobs = settings.config.get("jobs", {})
+        
+        plant_jobs_count = sum(1 for j in jobs.values() if plant_id in j.get("plant_params", {}))
+        
+        ctk.CTkLabel(
+            self.jobs_container, text=f"JOBS DISPONÍVEIS ({plant_id[3:]}): {plant_jobs_count}",
+            font=(FONT, 10, "bold"), text_color=SIDEBAR_MUTED
+        ).pack(anchor="w", pady=(0, 8), padx=12)
+        
+        sorted_jobs = sorted(jobs.items(), key=lambda item: item[1].get("dashboard", ""))
+        for job_key, job_data in sorted_jobs:
+            if plant_id in job_data.get("plant_params", {}):
+                is_active = job_data.get("active", False)
+                bg_color, border_color = (SIDEBAR_CARD_BG, SIDEBAR_CARD_BORDER) if is_active else (("#FEF2F2", "#2A1010"), ("#FECACA", "#451A1A"))
+                
+                card = ctk.CTkFrame(self.jobs_container, corner_radius=8, fg_color=bg_color, border_width=1, border_color=border_color)
+                card.pack(fill="x", padx=12, pady=4)
+
+                hdr = ctk.CTkFrame(card, fg_color="transparent")
+                hdr.pack(fill="x", padx=10, pady=(8, 2))
+                ctk.CTkLabel(hdr, text=f"▶ {job_key}", font=(FONT, 11, "bold"), text_color="#E2E8F0").pack(side="left")
+                
+                s_txt, s_col = ("● ON", SUCCESS_TEXT) if is_active else ("○ OFF", ERROR_TEXT)
+                ctk.CTkLabel(hdr, text=s_txt, font=(FONT, 10, "bold"), text_color=s_col).pack(side="right")
+
+                info_row = ctk.CTkFrame(card, fg_color="transparent")
+                info_row.pack(fill="x", padx=10, pady=(0, 8))
+                
+                ctk.CTkLabel(info_row, text=f"Transação: {job_data.get('transaction', 'N/A')}", font=(FONT, 10), text_color=SIDEBAR_MUTED).pack(side="left")
+                ctk.CTkLabel(info_row, text=job_data.get('dashboard', 'N/A')[6:], font=(FONT, 10), text_color=SIDEBAR_MUTED).pack(side="right")
+                
+        if not plant_jobs_count:
+            ctk.CTkLabel(
+                self.jobs_container, text="Nenhum job configurado para esta planta.",
+                font=(FONT, 11), text_color=SIDEBAR_MUTED, wraplength=SIDEBAR_W - 50, justify="left"
+            ).pack(anchor="w", padx=12, pady=10)
 
     
     #  VISUAL HELPERS
@@ -483,21 +291,18 @@ class RpaGUI(ctk.CTk):
     #  PROGRESS HELPERS
     def _tick(self):
         """Updates the elapsed-time timer every second."""
-        if self.timer_running and self._ok(self.lbl_timer):
-            s = int(time.time() - self.start_time)
-            self.lbl_timer.configure(text=f"⏱ {timedelta(seconds=s)}")
+        if not self.timer_running: return
+        if self._ok(self.lbl_timer):
+            self.lbl_timer.configure(text=f"⏱ {timedelta(seconds=int(time.time() - self.start_time))}")
             self.after(1000, self._tick)
-        elif self.timer_running and not self._ok(self.lbl_timer):
-            self.timer_running = False
+        else: self.timer_running = False
 
     def _log(self, txt: str):
-        if not self._ok(self.log_box):
-            return
-        ts = datetime.now().strftime("%H:%M:%S")
-        self.log_box.configure(state="normal")
-        self.log_box.insert("end", f"[{ts}]  {txt}\n")
-        self.log_box.see("end")
-        self.log_box.configure(state="disabled")
+        if self._ok(self.log_box):
+            self.log_box.configure(state="normal")
+            self.log_box.insert("end", f"[{datetime.now().strftime('%H:%M:%S')}]  {txt}\n")
+            self.log_box.see("end")
+            self.log_box.configure(state="disabled")
 
     
     #  STATUS CALLBACK
@@ -515,77 +320,46 @@ class RpaGUI(ctk.CTk):
         return cb
 
     def _apply(self, text: str, pct: float):
-        try:
-            pct = max(0, min(100, int(float(pct))))
-        except Exception:
-            pct = self.current_pct
+        try: pct = max(0, min(100, int(float(pct))))
+        except Exception: pct = self.current_pct
         self.current_pct = pct
 
-        if self._ok(self.lbl_status):
-            self.lbl_status.configure(text=text)
-        if self._ok(self.progress_bar):
-            self.progress_bar.set(pct / 100.0)
-        if self._ok(self.lbl_percent):
-            self.lbl_percent.configure(text=f"{pct}%")
+        if self._ok(self.lbl_status): self.lbl_status.configure(text=text)
+        if self._ok(self.progress_bar): self.progress_bar.set(pct / 100.0)
+        if self._ok(self.lbl_percent): self.lbl_percent.configure(text=f"{pct}%")
 
         if text and text != self.last_status:
             self._log(text)
             self.last_status = text
 
-        if self.execution_finished:
-            return
+        if self.execution_finished: return
 
         low = (text or "").lower()
-        if "erro" in low or "falha" in low or "exception" in low:
-            self._badge("error", "Erro transient")
-        elif pct >= 100:
-            self._badge("success", "Ciclo Concluído")
-        else:
-            self._badge("info", "Em execução")
+        if any(x in low for x in ("erro", "falha", "exception")): self._badge("error", "Erro transient")
+        elif pct >= 100: self._badge("success", "Ciclo Concluído")
+        else: self._badge("info", "Em execução")
 
     def _badge(self, kind: str, text: str):
-        if not self._ok(self.status_badge):
-            return
-        s = {
-            "info":    (ACCENT_SOFT, ACCENT_TEXT),
-            "success": (SUCCESS_FG,  SUCCESS_TEXT),
-            "warning": (WARNING_FG,  WARNING_TEXT),
-            "error":   (ERROR_FG,    ERROR_TEXT),
-        }.get(kind, (ACCENT_SOFT, ACCENT_TEXT))
-        self.status_badge.configure(text=text, fg_color=s[0], text_color=s[1])
+        if self._ok(self.status_badge):
+            fg, txt = {"success": (SUCCESS_FG, SUCCESS_TEXT), "warning": (WARNING_FG, WARNING_TEXT), "error": (ERROR_FG, ERROR_TEXT)}.get(kind, (ACCENT_SOFT, ACCENT_TEXT))
+            self.status_badge.configure(text=text, fg_color=fg, text_color=txt)
 
     def _finish(self, kind: str):
-        if self.execution_finished:
-            return
+        if self.execution_finished: return
         self.execution_finished = True
         self.timer_running = False
 
-        badge_map = {
-            "success": ("success", "Concluído"),
-            "warning": ("warning", "Interrompido"),
-            "error":   ("error",   "Erro"),
-        }
-        bk, bt = badge_map.get(kind, ("info", "Finalizado"))
-        self._badge(bk, bt)
+        cfg = {
+            "success": ("Concluído", "▶  Nova execução", "Concluído com sucesso!"),
+            "warning": ("Interrompido", "↩  Voltar", "Interrompido pelo usuário."),
+            "error":   ("Erro", "🔧  Tentar novamente", "Erro detectado - revise o log.")
+        }.get(kind, ("Finalizado", "Nova execução", ""))
+        
+        self._badge(kind if kind in ["success", "warning", "error"] else "info", cfg[0])
 
-        if self._ok(self.btn_stop):
-            self.btn_stop.configure(state="disabled")
-        if self._ok(self.btn_back):
-            labels = {
-                "success": "▶  Nova execução",
-                "warning": "↩  Voltar",
-                "error":   "🔧  Tentar novamente"
-            }
-            self.btn_back.configure(
-                state="normal", text=labels.get(kind, "Nova execução")
-            )
-        if self._ok(self.lbl_hint):
-            hints = {
-                "success": "Concluído com sucesso!",
-                "warning": "Interrompido pelo usuário.",
-                "error":   "Erro detectado - revise o log."
-            }
-            self.lbl_hint.configure(text=hints.get(kind, ""))
+        if self._ok(self.btn_stop): self.btn_stop.configure(state="disabled")
+        if self._ok(self.btn_back): self.btn_back.configure(state="normal", text=cfg[1])
+        if self._ok(self.lbl_hint): self.lbl_hint.configure(text=cfg[2])
 
     
     #  ACTIONS
@@ -598,18 +372,13 @@ class RpaGUI(ctk.CTk):
         pwd = (self.input_pwd.get() if self.input_pwd else "")
         planta = (self.combo_planta.get().strip() if self.combo_planta else "")
 
-        if not user or not pwd:
-            self._form_msg("Preencha usuário e senha.", "warning")
-            return
-        if len(user) != 7:
-            self._form_msg("Usuário SAP: exatamente 7 caracteres.", "warning")
-            return
-        if len(pwd) < 12:
-            self._form_msg("Senha: mínimo 12 caracteres.", "warning")
-            return
-        if not planta or planta == "Nenhuma":
-            self._form_msg("Selecione uma planta válida.", "warning")
-            return
+        err = next((m for c, m in [
+            (not user or not pwd, "Preencha usuário e senha."),
+            (len(user) != 7, "Usuário SAP: exatamente 7 caracteres."),
+            (len(pwd) < 12, "Senha: mínimo 12 caracteres."),
+            (not planta or planta == "Nenhuma", "Selecione uma planta válida.")
+        ] if c), None)
+        if err: return self._form_msg(err, "warning")
 
         self._prefs["last_plant"] = planta
         save_prefs(self._prefs)
@@ -619,74 +388,42 @@ class RpaGUI(ctk.CTk):
             keyring.set_password("RPA_SESE_USER", "default", user)
             keyring.set_password("RPA_SESE_PWD", user, pwd)
         else:
-            if stored:
-                safe_del_pwd("RPA_SESE_PWD", stored)
+            if stored: safe_del_pwd("RPA_SESE_PWD", stored)
             safe_del_pwd("RPA_SESE_USER", "default")
             safe_del_pwd("RPA_SESE_PWD", user)
 
-        settings.dynamic_user = user
-        settings.dynamic_pwd = pwd
-        settings.export_base_path = self.caminho_onedrive
-
-        self.current_user = user
-        self.current_plant = planta
-        self.current_pct = 0
-        self.last_status = None
+        settings.dynamic_user, settings.dynamic_pwd, settings.export_base_path = user, pwd, self.caminho_onedrive
+        self.current_user, self.current_plant, self.current_pct, self.last_status = user, planta, 0, None
 
         self.stop_event.set()
-
-        if self.worker_thread is not None and self.worker_thread.is_alive():
-            self.worker_thread.join(timeout=5)
-            if self.worker_thread.is_alive():
-                pass
+        if self._running(): self.worker_thread.join(timeout=5)
 
         self.stop_event = threading.Event()
         self._execution_gen += 1
-        current_gen = self._execution_gen
         self._show_progress()
         self._log(f"Execução iniciada - planta '{self.current_plant}'.")
 
-        # WAKE UP ETL
         try:
-            etl_launcher_path = os.path.join(self.caminho_onedrive, "002 - Filiais database", "006 - ETL", "ETL_Sese.exe")
-            local_appdata = os.environ.get("LOCALAPPDATA", "")
-            etl_local_path = os.path.join(local_appdata, "HubSeseRPA", "ETL", "bin", "ETL_Sese.exe")
-
-            etl_exe_path = etl_launcher_path if os.path.exists(etl_launcher_path) else etl_local_path
-
-            if os.path.exists(etl_exe_path):
+            etl_exe = os.path.join(self.caminho_onedrive, "002 - Filiais database", "006 - ETL", "ETL_Sese.exe")
+            if os.path.exists(etl_exe):
                 os.system("taskkill /F /IM HubSese_ETL*.exe /T 2>nul")
                 clean_plant = re.sub(r'[\d\-]', '', self.current_plant).split()[0].strip().lower()
-                subprocess.Popen([etl_exe_path, clean_plant], creationflags=0x08000000)
-                self._log(f"Processo ETL ativado em background com planta: {clean_plant}.")
-            else:
-                self._log("Aviso: Executável do ETL não foi encontrado.")
-                self._log(f"  Tentou: {etl_launcher_path}")
-                self._log(f"  Tentou: {etl_local_path}")
-        except Exception as e:
-            self._log(f"Aviso: Não foi possível acordar o ETL: {e}")
+                subprocess.Popen([etl_exe, clean_plant], creationflags=0x08000000)
+                self._log(f"Processo ETL ativado: {clean_plant}")
+        except Exception: pass
 
-
-        self.start_time = time.time()
-        self.timer_running = True
+        self.start_time, self.timer_running = time.time(), True
         self._tick()
 
-        gui_cb = self._make_status_callback(current_gen)
-        self.worker_thread = threading.Thread(
-            target=self._worker, args=(planta, gui_cb), daemon=True
-        )
+        self.worker_thread = threading.Thread(target=self._worker, args=(planta, self._make_status_callback(self._execution_gen)), daemon=True)
         self.worker_thread.start()
 
     def _worker(self, planta: str, gui_cb):
-        final_kind = "success"
         try:
             run_plant(planta, gui_cb, self.stop_event)
-            if self.stop_event.is_set():
-                gui_cb("Processo interrompido pelo usuário.", 0)
-                final_kind = "warning"
-            else:
-                gui_cb("Processo finalizado completamente.", 100)
-                final_kind = "success"
+            is_stop = self.stop_event.is_set()
+            gui_cb("Processo interrompido pelo usuário." if is_stop else "Processo finalizado completamente.", 0 if is_stop else 100)
+            final_kind = "warning" if is_stop else "success"
         except Exception as e:
             gui_cb(f"Erro fatal: {e}", self.current_pct)
             final_kind = "error"
@@ -694,11 +431,9 @@ class RpaGUI(ctk.CTk):
             self.after(0, lambda k=final_kind: self._finish(k))
 
     def _stop(self):
-        if not self._running():
-            return
+        if not self._running(): return
         self.stop_event.set()
-        if self._ok(self.lbl_status):
-            self.lbl_status.configure(text="Processo interrompido pelo usuário.")
+        if self._ok(self.lbl_status): self.lbl_status.configure(text="Processo interrompido pelo usuário.")
         self._log("Interrupção solicitada.")
         self._finish("warning")
 

@@ -56,12 +56,18 @@ def show(app) -> None:
     app.combo_planta = ctk.CTkComboBox(
         form, values=plants, height=36,
         corner_radius=10, border_width=1, border_color=BORDER,
-        font=(FONT, 12), dropdown_font=(FONT, 12)
+        font=(FONT, 12), dropdown_font=(FONT, 12),
+        command=app.on_plant_select
     )
     app.combo_planta.pack(anchor="w", fill="x", pady=(0, 10))
 
     last = app._prefs.get("last_plant")
-    app.combo_planta.set(last if last in plants else plants[0])
+    selected_plant = last if last in plants else plants[0]
+    app.combo_planta.set(selected_plant)
+    
+    # Initialize the sidebar jobs list right away if env is ready
+    if app.env_ready:
+        app.on_plant_select(selected_plant)
 
     # Username
     ctk.CTkLabel(

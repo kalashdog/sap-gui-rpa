@@ -236,7 +236,7 @@
       }
     },
     "LT22_IMP3": {
-      "dashboard": "004 - Importado Histórico",
+      "dashboard": "004 - Importado",
       "transaction": "LT22",
       "spool_name": "IMP3",
       "active": true,
@@ -512,6 +512,35 @@
         }
       }
     },
+    "MB51_BESI3_261": {
+      "dashboard": "005 - Baixa Divergente",
+      "transaction": "MB51",
+      "spool_name": "BESI3MB51261",
+      "use_staging": true,
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "werks": "5100",
+          "variant": "VINIDIVER261",
+          "local_extract": "005 - Baixa Divergente\\historico",
+          "name_file": "MB51-{date:%d%m%Y}.txt"
+        },
+        "02-Taubate": {
+          "werks": "5300",
+          "variant": "VINIDIVER261",
+          "local_extract": "005 - Baixa Divergente\\historico",
+          "name_file": "MB51-{date:%d-%m-%Y}.txt"
+        },
+        "03-Curitiba": {
+          "werks": "5700",
+          "variant": "VINIDIVER261",
+          "local_extract": "005 - Baixa Divergente\\historico",
+          "name_file": "MB51-{date:%d%m%Y}.txt"
+        }
+      }
+    },
     "LT23_COFRE1": {
       "dashboard": "016 - Cofre Importado",
       "transaction": "LT23",
@@ -525,6 +554,41 @@
           "variant": "/newcofredash",
           "local_extract": "016 - Cofre Importado\\SAP",
           "name_file": "LT23COFRE-{date:%d-%m-%Y}.txt"
+        }
+      }
+    },
+    "MAIREIM015_SUPERBESI": {
+      "dashboard": "000 - Compartilhado",
+      "transaction": "/VWK/MAIREIM015",
+      "spool_name": "SUPERBESI",
+      "use_staging": true,
+      "active": true,
+      "background_job": true,
+      "once_per_day": false,
+      "plant_params": {
+        "01-Anchieta": {
+          "werks": "5100",
+          "variant": "/NEWBESI",
+          "local_extract": "000 - Compartilhado",
+          "name_file": "SUPERBESI.txt"
+        },
+        "02-Taubate": {
+          "werks": "5300",
+          "variant": "/NEWBESI",
+          "local_extract": "000 - Compartilhado",
+          "name_file": "SUPERBESI.txt"
+        },
+        "03-Curitiba": {
+          "werks": "5700",
+          "variant": "/NEWBESI",
+          "local_extract": "000 - Compartilhado",
+          "name_file": "SUPERBESI.txt"
+        },
+        "04-SaoCarlos": {
+          "werks": "5200",
+          "variant": "/NEWBESI",
+          "local_extract": "000 - Compartilhado",
+          "name_file": "SUPERBESI.txt"
         }
       }
     },
@@ -580,7 +644,7 @@
       "transaction": "AL11",
       "spool_name": "BESI3",
       "use_staging": true,
-      "active": true,
+      "active": false,
       "background_job": false,
       "once_per_day": true,
       "plant_params": {
